@@ -13,7 +13,7 @@ PORT_WALK = 100                         # how far above a taken port to look for
 
 
 def on_pod() -> bool:
-    return bool(os.environ.get("RUNPOD_POD_ID"))
+    return bool(os.environ.get("RUNPOD_POD_ID")) or os.environ.get("FIZGIG_POD", "0") not in ("0", "")
 
 
 def saved_port(prefs) -> int:

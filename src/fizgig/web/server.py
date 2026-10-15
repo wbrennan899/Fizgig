@@ -2047,11 +2047,16 @@ class Handler(BaseHTTPRequestHandler):
     def _session(self):
         return hmac.new(_session_key().encode(), (self.password or "").encode(), hashlib.sha256).hexdigest()
 
+    def _https(self):
+        """Did the browser reach us over HTTPS? RunPod's proxy says so in X-Forwarded-Proto; a plain HTTP port (Vast's
+        direct ports, say) does not, and a browser drops a Secure cookie sent over plain HTTP."""
+        return (self.headers.get("X-Forwarded-Proto") or "").split(",")[0].strip().lower() == "https"
+
     def _cookie(self, remember=False):
         """The login cookie: for 30 days on this device with Keep me logged in, else until the browser closes.
         Secure through a pod's HTTPS proxy."""
         return ("Set-Cookie", f"fizgig_session={self._session()}; Path=/; HttpOnly; SameSite=Strict"
-                              + ("; Max-Age=2592000" if remember else "") + ("; Secure" if on_pod() else ""))
+                              + ("; Max-Age=2592000" if remember else "") + ("; Secure" if on_pod() and self._https() else ""))
 
     def _logged_in(self):
         if not self.password:
